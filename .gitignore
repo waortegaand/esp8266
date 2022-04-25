@@ -1,0 +1,10 @@
+# Directorios 
+/build
+
+# Archivos de configuracion
+/**/sdkconfig
+/**/sdkconfig.old
+/**/build
+
+# Visual Studio Code
+.vscode/*
