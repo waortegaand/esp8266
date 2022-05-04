@@ -5,6 +5,7 @@
 /**/sdkconfig
 /**/sdkconfig.old
 /**/build
+/**/**/sdk_config.h
 
 # Visual Studio Code
 .vscode/*
