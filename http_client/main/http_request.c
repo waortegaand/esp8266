@@ -33,12 +33,13 @@
    in the component.mk COMPONENT_EMBED_TXTFILES variable.
 */
 
-/* //Certificate is not used in this project */
-extern const char howsmyssl_com_root_cert_pem_start[] asm("_binary_howsmyssl_com_root_cert_pem_start");
-extern const char howsmyssl_com_root_cert_pem_end[]   asm("_binary_howsmyssl_com_root_cert_pem_end");
+/* //Certificate is used in this project for https://iiot4.herokuapp.com */
+extern const char howsmyssl_com_root_cert_pem_start[] asm("_binary_iiot4_herokuapp_com_chain_pem_start");
+extern const char howsmyssl_com_root_cert_pem_end[]   asm("_binary_iiot4_herokuapp_com_chain_pem_end");
 
 
 static const char *TAG = "HTTP_CLIENT";
+//static const char *WIFI_TASK_NAME = "HTTP_CLIENT_EXAMPLE: ";
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -110,6 +111,53 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
+void https_rest_with_url_post(void){
+    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+    /* */
+    esp_http_client_config_t config = {
+        .url = "https://iiot4.herokuapp.com/",
+        .event_handler = _http_event_handler,
+        .buffer_size = HTTP_RECEIVE_BUFFER_SIZE,
+        .disable_auto_redirect = false,
+        .cert_pem = howsmyssl_com_root_cert_pem_start,
+        .user_data = local_response_buffer,        // Pass address of local buffer to get response
+        //.is_async = true,
+        //.timeout_ms = 10000,
+    };
+
+    //printf("Test HTTP - Free Heap Size:  %d \r\n", esp_get_free_heap_size());
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+
+    // POST
+    esp_err_t err;
+    const char *post_data = "{\"valueTemp\":25.0,\"sensor\":\"Default\",\"connect\":\"Roaster 20\"}";
+    esp_http_client_set_url(client, "https://iiot4.herokuapp.com/sensor/temp");
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    
+    err = esp_http_client_perform(client);
+    /* 
+    while (1) {
+        err = esp_http_client_perform(client);
+        if (err != ESP_ERR_HTTP_EAGAIN) {
+            break;
+        }
+    }
+    */
+    
+    if (err == ESP_OK) {
+        char *buffer1 = malloc(MAX_HTTP_RECV_BUFFER + 1);
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d, buffer1: %s", 
+                esp_http_client_get_status_code(client),
+                esp_http_client_get_content_length(client), buffer1);
+    } else {
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }
+    
+    esp_http_client_cleanup(client);
+}
+
 void http_rest_with_url(void)
 {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
@@ -137,7 +185,7 @@ void http_rest_with_url(void)
                 esp_http_client_get_content_length(client));
                 ESP_LOG_BUFFER_HEX(TAG, output_buffer, strlen(output_buffer));
                 printf("\n--------------- Mensaje GET Obtenido ---------\n");
-                printf("%s",local_response_buffer);
+                printf("%s \n\n",local_response_buffer);
     } else {
         ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
@@ -145,6 +193,7 @@ void http_rest_with_url(void)
 
     // POST
     /*
+    
     const char *post_data = "{\"valueTemp\":145.0,\"sensor\":\"PTC\",\"connect\":\"Roaster\"}";
     esp_http_client_set_url(client, "https://iiot4.herokuapp.com/sensor/temp");
     esp_http_client_set_method(client, HTTP_METHOD_POST);
@@ -159,10 +208,8 @@ void http_rest_with_url(void)
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
     */
-
     esp_http_client_cleanup(client);
 }
-
 
 void http_rest_with_hostname_path(void)
 {
@@ -198,19 +245,6 @@ void http_rest_with_hostname_path(void)
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
 
-    //PATCH
-    esp_http_client_set_url(client, "/patch");
-    esp_http_client_set_method(client, HTTP_METHOD_PATCH);
-    esp_http_client_set_post_field(client, NULL, 0);
-    err = esp_http_client_perform(client);
-    if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP PATCH Status = %d, content_length = %d",
-                esp_http_client_get_status_code(client),
-                esp_http_client_get_content_length(client));
-    } else {
-        ESP_LOGE(TAG, "HTTP PATCH request failed: %s", esp_err_to_name(err));
-    }
-
     esp_http_client_cleanup(client);
 }
 
@@ -225,7 +259,7 @@ void http_native_request(void)
     char output_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};   // Buffer to store response of http request
     int content_length = 0;
     esp_http_client_config_t config = {
-        .url = "https://iiot4.herokuapp.com/",
+        .url = "https://iiot4.herokuapp.com/sensors",
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
 

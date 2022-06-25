@@ -22,6 +22,7 @@ static const char *TAG = "___wifi_station___";
 /* */
 static void http_test_task(void *pvParameters)
 {
+    https_rest_with_url_post();
     http_rest_with_url();
     // http_rest_with_hostname_path();
     // http_native_request();
@@ -32,12 +33,7 @@ static void http_test_task(void *pvParameters)
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
-    /*
-    printf("\n\n\n_______________-INICIO---DE---PRUEBA-__________________\n\n\n");
+    //ESP_ERROR_CHECK(nvs_flash_init());
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
       ESP_ERROR_CHECK(nvs_flash_erase());
@@ -45,8 +41,11 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
     ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-   */
+    //ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    wifi_init_sta();
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    /* */
 
     printf("\n\n\n_______________-PRUEBA---DE---ERROR-__________________\n\n\n");
     /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.

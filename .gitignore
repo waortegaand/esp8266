@@ -1,5 +1,6 @@
 # Directorios 
 /build
+/**/main/certs
 
 # Archivos de configuracion
 /**/sdkconfig
